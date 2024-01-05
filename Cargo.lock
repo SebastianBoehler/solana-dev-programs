@@ -1027,6 +1027,7 @@ dependencies = [
  "ahash 0.8.6",
  "anchor-lang",
  "my-oracle",
+ "solana-program",
 ]
 
 [[package]]

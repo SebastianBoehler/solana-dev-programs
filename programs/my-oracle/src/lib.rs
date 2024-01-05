@@ -47,6 +47,6 @@ pub struct Update<'info> {
 #[account]
 pub struct DataStore {
     pub name: String,
-    data: u64,
+    pub data: u64,
 }
 

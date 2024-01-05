@@ -6,7 +6,7 @@ skip-lint = false
 
 [programs.devnet]
 my_oracle = "EfAx4Xm2XSfKy256BRALdW1EbR28LjvQErykasxCyp59"
-oracle-cpi = "3ideNGLqtUS9ZWMDs1qcqs3wMiV6WQ7s6vFXmPji5hbA"
+oracle_cpi = "3ideNGLqtUS9ZWMDs1qcqs3wMiV6WQ7s6vFXmPji5hbA"
 
 [registry]
 url = "https://api.apr.dev"
