@@ -7,6 +7,7 @@ skip-lint = false
 [programs.devnet]
 my_oracle = "EfAx4Xm2XSfKy256BRALdW1EbR28LjvQErykasxCyp59"
 oracle_cpi = "3ideNGLqtUS9ZWMDs1qcqs3wMiV6WQ7s6vFXmPji5hbA"
+treasury = "5fFfVZDnmvBWsAsJcwdkxbAQ7yqRaX5H4Kk9wZn3DGiC"
 
 [registry]
 url = "https://api.apr.dev"

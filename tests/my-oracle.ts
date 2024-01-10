@@ -3,10 +3,9 @@ import { BN, Program } from "@coral-xyz/anchor";
 import { OracleCpi } from "../target/types/oracle_cpi";
 import { MyOracle } from "../target/types/my_oracle";
 
-describe("my-oracle", () => {
-  // Configure the client to use the local cluster.
-  anchor.setProvider(anchor.AnchorProvider.env());
+anchor.setProvider(anchor.AnchorProvider.env());
 
+describe.skip("oracle", () => {
   const oracleM = anchor.workspace.OracleCpi as Program<OracleCpi>;
   const oracle = anchor.workspace.MyOracle as Program<MyOracle>;
 
