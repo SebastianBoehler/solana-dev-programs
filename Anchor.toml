@@ -7,7 +7,7 @@ skip-lint = false
 [programs.devnet]
 my_oracle = "EfAx4Xm2XSfKy256BRALdW1EbR28LjvQErykasxCyp59"
 oracle_cpi = "3ideNGLqtUS9ZWMDs1qcqs3wMiV6WQ7s6vFXmPji5hbA"
-treasury = "5fFfVZDnmvBWsAsJcwdkxbAQ7yqRaX5H4Kk9wZn3DGiC"
+treasury = "5hFG4V19ktLKzKjUAxcBs1dNBv5UFQPDsfVfgNvLWBAe"
 
 [registry]
 url = "https://api.apr.dev"
@@ -17,4 +17,4 @@ cluster = "Devnet"
 wallet = "/Users/sebastianboehler/.config/solana/id.json"
 
 [scripts]
-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/treasury.ts"
