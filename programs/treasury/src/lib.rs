@@ -51,9 +51,56 @@ pub mod treasury {
         Ok(())
     }
 
+    pub fn withdraw(ctx: Context<Withdraw>, pda_bump: u8) -> Result<()> {
+        let escrow = &ctx.accounts.escrow_pda;
+        let amount = escrow.amount;
+
+        if amount == 0 {
+            return Err(ErrorCode::EscrowEmpty.into());
+        }
+
+        let transfer_instruction = Transfer{
+            from: ctx.accounts.escrow_wallet.to_account_info(),
+            to: ctx.accounts.users_receiving_token_account.to_account_info(),
+            authority: ctx.accounts.escrow_pda.to_account_info(),
+        };
+
+        //let identifier_bytes = identifier.to_le_bytes();
+        let bump_bytes = pda_bump.to_le_bytes();
+
+        let inner = vec![
+            b"state".as_ref(),
+            ctx.accounts.user_sending.key.as_ref(),
+            ctx.accounts.user_receiving.key.as_ref(),
+            //mint_of_token_being_sent_pk.as_ref(), 
+            //identifier_bytes.as_ref(),
+            bump_bytes.as_ref(),
+        ];
+        let outer = vec![inner.as_slice()];
+
+        let cpi_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            transfer_instruction,
+            outer.as_slice(),
+        );
+
+        anchor_spl::token::transfer(cpi_ctx, amount)?;
+
+        msg!("Funds withdrawed out! {}", amount);
+
+        //set escrow amount to 0
+        *&mut ctx.accounts.escrow_pda.amount = 0;
+
+        Ok(())
+    }
+
     pub fn pull_back(ctx: Context<PullBackInstruction>, _identifier: u64, pda_bump: u8) -> Result<()> {
         let escrow = &ctx.accounts.escrow_pda;
         let amount = escrow.amount;
+
+        if amount == 0 {
+            return Err(ErrorCode::EscrowEmpty.into());
+        }
 
         let transfer_instruction = Transfer{
             from: ctx.accounts.escrow_wallet.to_account_info(),
@@ -85,6 +132,17 @@ pub mod treasury {
 
         //set escrow amount to 0
         *&mut ctx.accounts.escrow_pda.amount = 0;
+
+        Ok(())
+    }
+
+    pub fn close_escrow(ctx: Context<CloseEscrow>) -> Result<()> {
+        let escrow = &ctx.accounts.escrow_pda;
+        let amount = escrow.amount;
+
+        if amount != 0 {
+            return Err(ErrorCode::EscrowNotEmpty.into());
+        }
 
         Ok(())
     }
@@ -152,8 +210,8 @@ pub struct PullBackInstruction<'info> {
         mut,
         seeds=[b"state".as_ref(), user_sending.key().as_ref(), user_receiving.key.as_ref()],
         bump,
-        //has_one = user_sending,
-        //has_one = user_receiving,
+        has_one = user_sending,
+        has_one = user_receiving,
     )]
     escrow_pda: Account<'info, State>,
     #[account(
@@ -181,4 +239,65 @@ pub struct PullBackInstruction<'info> {
     system_program: Program<'info, System>,
     token_program: Program<'info, Token>,
     rent: Sysvar<'info, Rent>,
+}
+
+#[derive(Accounts)]
+#[instruction(pda_bump: u8)]
+pub struct Withdraw<'info> {
+    /// CHECK: This is not a signer account
+    user_sending: AccountInfo<'info>,
+    #[account(mut)]
+    user_receiving: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds=[b"state".as_ref(), user_sending.key().as_ref(), user_receiving.key.as_ref()],
+        bump,
+        has_one = user_sending,
+        has_one = user_receiving,
+    )]
+    escrow_pda: Account<'info, State>,
+
+    #[account(
+        mut,
+        seeds=[b"wallet".as_ref(), user_sending.key().as_ref(), user_receiving.key.as_ref()],
+        bump,
+    )]
+    escrow_wallet: Account<'info, TokenAccount>,
+    mint_of_token_being_sent: Account<'info, Mint>,
+
+    #[account(
+        mut,
+        constraint=users_receiving_token_account.owner == user_receiving.key(),
+        constraint=users_receiving_token_account.mint == mint_of_token_being_sent.key(),
+    )]
+    users_receiving_token_account: Account<'info, TokenAccount>,
+
+    system_program: Program<'info, System>,
+    token_program: Program<'info, Token>,
+    rent: Sysvar<'info, Rent>,
+}
+
+#[derive(Accounts)]
+pub struct CloseEscrow<'info> {
+    user_sending: Signer<'info>,
+    /// CHECK: This is not a signer account
+    user_receiving: AccountInfo<'info>,
+    #[account(
+        mut,
+        seeds=[b"state".as_ref(), user_sending.key().as_ref(), user_receiving.key.as_ref()],
+        bump,
+        close = user_sending,
+    )]
+    escrow_pda: Account<'info, State>,
+
+    pub system_program: Program<'info, System>,
+}
+
+#[error_code]
+pub enum ErrorCode {
+    #[msg("Escrow is not empty")]
+    EscrowNotEmpty,
+    #[msg("Escrow is empty")]
+    EscrowEmpty,
 }
